@@ -10,7 +10,7 @@ public class TokenService
 {
     public string GenerateToken(User user)
     {
-        string jwtkey = "System.Environment.GetEnvironmentVariable(jwtkey)";
+        string jwtkey = System.Environment.GetEnvironmentVariable("jwtkey");
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(jwtkey);
         var tokenDescriptor = new SecurityTokenDescriptor

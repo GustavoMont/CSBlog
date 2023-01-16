@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using CSBlog.Repositories;
 using CSBlog.Services;
 using CSBlog.Controllers;
+using dotenv.net;
+
+DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

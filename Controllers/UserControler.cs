@@ -54,12 +54,12 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> CreateAsync([FromBody] CreateUserRequest body)
+    public async Task<ActionResult<AuthToken>> CreateAsync([FromBody] CreateUserRequest body)
     {
         try
         {
-            await _service.CreateAsync(body);
-            return StatusCode(201, new { message = "Usuário criado com sucesso" });
+            var response = await _service.CreateAsync(body);
+            return StatusCode(201, response);
         }
         catch (Exception err)
         {
