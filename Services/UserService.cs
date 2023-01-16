@@ -1,3 +1,4 @@
+using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
 using CSBlog.Models;
 using CSBlog.Repositories;
@@ -9,13 +10,39 @@ namespace CSBlog.Services;
 public class UserService
 {
     private readonly UserRepository _repository;
+    private readonly TokenService _tokenService;
 
-    public UserService([FromServices] UserRepository userRepository)
+    public UserService(
+        [FromServices] UserRepository userRepository,
+        [FromServices] TokenService tokenService
+    )
     {
         _repository = userRepository;
+        _tokenService = tokenService;
     }
 
-    public async Task CreateAsync(CreateUserRequest body)
+    private AuthToken GenerateToken(User user)
+    {
+        AuthToken token = new() { Access = _tokenService.GenerateToken(user) };
+        return token;
+    }
+
+    public async Task<AuthToken> LoginAsync(LoginReq credential)
+    {
+        var user = await GetByEmailAsync(credential.Email);
+        if (user is null)
+        {
+            throw new BadHttpRequestException("Usuário ou senha incorretos");
+        }
+        var isPasswordCorrect = BCrypt.Net.BCrypt.Verify(credential.Password, user.Password);
+        if (!isPasswordCorrect)
+        {
+            throw new BadHttpRequestException("Usuário ou senha incorretos");
+        }
+        return GenerateToken(user);
+    }
+
+    public async Task<AuthToken> CreateAsync(CreateUserRequest body)
     {
         if (body.Password != body.ConfirmPassword)
         {
@@ -28,7 +55,7 @@ public class UserService
         var user = body.Adapt<User>();
         user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
         var newUser = await _repository.CreateAsync(user);
-        return;
+        return GenerateToken(newUser);
     }
 
     public async Task<List<UserResponse>> ListAsync()

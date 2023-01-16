@@ -1,3 +1,4 @@
+using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
 using CSBlog.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -59,6 +60,21 @@ public class UserController : ControllerBase
         {
             await _service.CreateAsync(body);
             return StatusCode(201, new { message = "Usuário criado com sucesso" });
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpPost]
+    [Route("login")]
+    public async Task<ActionResult<AuthToken>> LoginAsync([FromBody] LoginReq credential)
+    {
+        try
+        {
+            var response = await _service.LoginAsync(credential);
+            return Ok(response);
         }
         catch (Exception err)
         {

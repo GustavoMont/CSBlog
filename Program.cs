@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserController>();
+builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddControllers();
 
