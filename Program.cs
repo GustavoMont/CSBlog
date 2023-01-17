@@ -21,6 +21,8 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserController>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<PostRepository>();
+builder.Services.AddScoped<PostService>();
 
 builder.Services.AddControllers();
 

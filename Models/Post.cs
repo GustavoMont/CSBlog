@@ -1,36 +1,38 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace CSBlog.Models;
 
-[Index(nameof(Email), IsUnique = true)]
-public class User
+public class Post
 {
     public int Id { get; set; }
 
-    [Column(TypeName = "varchar(100)")]
     [Required]
-    public string Name { get; set; }
-
     [Column(TypeName = "varchar(100)")]
-    [Required]
-    public string LastName { get; set; }
+    public string Title { get; set; }
 
+#nullable enable
     [Column(TypeName = "varchar(150)")]
-    [Required]
-    public string Email { get; set; }
+    public string? Subtitle { get; set; }
 
-    [Column(TypeName = "varchar(255)")]
+#nullable disable
     [Required]
-    public string Password { get; set; }
+    [Column(TypeName = "longtext")]
+    public string Content { get; set; }
+
+    [Required]
+    public PostStatus Status { get; set; }
+
+    [Required]
+    [Column(TypeName = "varchar(255)")]
+    public string Tags { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
-    [Column(TypeName = "varchar(20)")]
-    public UserType? UserType { get; set; }
-
-    public List<Post> Posts { get; set; }
+    [Required]
+    public int AuthorId { get; set; }
+    public User Author { get; set; }
 
     public void Create()
     {

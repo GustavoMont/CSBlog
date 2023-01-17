@@ -3,6 +3,7 @@ using System;
 using CSBlog.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CSBlog.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20230117014716_AddCreatedAtUpdatedAtPost")]
+    partial class AddCreatedAtUpdatedAtPost
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,6 +93,7 @@ namespace CSBlog.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("UserType")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(20)")
                         .HasDefaultValue("READER");

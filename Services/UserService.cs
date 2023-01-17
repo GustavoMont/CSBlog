@@ -66,11 +66,11 @@ public class UserService
         var existUser = await GetByEmailAsync(body.Email);
         if (existUser is not null) { }
         ComparePasswords(body.Password, body.ConfirmPassword);
-        var user = body.Adapt<User>();
-        if (Enum.IsDefined(typeof(UserType), body.UserType))
+        if (!Enum.IsDefined(typeof(UserType), body.UserType))
         {
             throw new BadHttpRequestException("Tipo de usuário não existente");
         }
+        var user = body.Adapt<User>();
         user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
         var newUser = await _repository.CreateAsync(user);
         return newUser.Adapt<UserResponse>();

@@ -9,13 +9,22 @@ public class Context : DbContext
 
     //Entities
     public DbSet<User> Users { get; set; }
+    public DbSet<Post> Posts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().Property(p => p.UserType).HasDefaultValue(UserType.READER);
+        modelBuilder.Entity<Post>().Property(p => p.Status).HasDefaultValue(PostStatus.DRAFT);
         modelBuilder
             .Entity<User>()
             .Property(p => p.UserType)
             .HasConversion(ut => ut.ToString(), ut => (UserType)Enum.Parse(typeof(UserType), ut));
+        modelBuilder
+            .Entity<Post>()
+            .Property(p => p.Status)
+            .HasConversion(
+                ps => ps.ToString(),
+                ps => (PostStatus)Enum.Parse(typeof(PostStatus), ps)
+            );
     }
 }
