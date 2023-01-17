@@ -35,6 +35,15 @@ public class UserService
         }
     }
 
+    public async Task UserAlreadyExists(string email)
+    {
+        var user = await GetByEmailAsync(email);
+        if (user is not null)
+        {
+            throw new BadHttpRequestException("Usuário já cadastrado");
+        }
+    }
+
     public async Task<AuthToken> LoginAsync(LoginReq credential)
     {
         var user = await GetByEmailAsync(credential.Email);
@@ -52,6 +61,10 @@ public class UserService
 
     public async Task<UserResponse> CreateTeamUserAsync(CreateTeamUser body)
     {
+        await UserAlreadyExists(body.Email);
+        ComparePasswords(body.Password, body.ConfirmPassword);
+        var existUser = await GetByEmailAsync(body.Email);
+        if (existUser is not null) { }
         ComparePasswords(body.Password, body.ConfirmPassword);
         var user = body.Adapt<User>();
         if (Enum.IsDefined(typeof(UserType), body.UserType))
@@ -65,6 +78,7 @@ public class UserService
 
     public async Task<AuthToken> CreateAsync(CreateUserRequest body)
     {
+        await UserAlreadyExists(body.Email);
         ComparePasswords(body.Password, body.ConfirmPassword);
         var user = body.Adapt<User>();
         user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
