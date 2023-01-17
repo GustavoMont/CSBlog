@@ -1,6 +1,8 @@
 using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
+using CSBlog.Models;
 using CSBlog.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CSBlog.Controllers;
@@ -48,6 +50,24 @@ public class UserController : ControllerBase
             return NotFound(new { message = err.Message });
         }
         catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpPost]
+    [Route("team")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<ActionResult<UserResponse>> CreateTeamUserAsync(
+        [FromBody] CreateTeamUser body
+    )
+    {
+        try
+        {
+            var response = await _service.CreateTeamUserAsync(body);
+            return StatusCode(201, response);
+        }
+        catch (System.Exception err)
         {
             return BadRequest(new { message = err.Message });
         }

@@ -12,6 +12,7 @@ public class Context : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>().Property(p => p.UserType).HasDefaultValue(UserType.READER);
         modelBuilder
             .Entity<User>()
             .Property(p => p.UserType)

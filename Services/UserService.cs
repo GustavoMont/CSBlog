@@ -27,6 +27,14 @@ public class UserService
         return token;
     }
 
+    public void ComparePasswords(string password, string confirmPassword)
+    {
+        if (password != confirmPassword)
+        {
+            throw new BadHttpRequestException("As senhas não estão iguais");
+        }
+    }
+
     public async Task<AuthToken> LoginAsync(LoginReq credential)
     {
         var user = await GetByEmailAsync(credential.Email);
@@ -42,16 +50,22 @@ public class UserService
         return GenerateToken(user);
     }
 
+    public async Task<UserResponse> CreateTeamUserAsync(CreateTeamUser body)
+    {
+        ComparePasswords(body.Password, body.ConfirmPassword);
+        var user = body.Adapt<User>();
+        if (Enum.IsDefined(typeof(UserType), body.UserType))
+        {
+            throw new BadHttpRequestException("Tipo de usuário não existente");
+        }
+        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+        var newUser = await _repository.CreateAsync(user);
+        return newUser.Adapt<UserResponse>();
+    }
+
     public async Task<AuthToken> CreateAsync(CreateUserRequest body)
     {
-        if (body.Password != body.ConfirmPassword)
-        {
-            throw new BadHttpRequestException("As senhas não estão iguais");
-        }
-        if (!Enum.IsDefined(typeof(UserType), body.UserType))
-        {
-            throw new BadHttpRequestException("Tipo de usuário não cadastrado");
-        }
+        ComparePasswords(body.Password, body.ConfirmPassword);
         var user = body.Adapt<User>();
         user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
         var newUser = await _repository.CreateAsync(user);

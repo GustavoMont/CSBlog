@@ -34,7 +34,4 @@ public class CreateUserRequest
     )]
     public string Password { get; set; }
     public string ConfirmPassword { get; set; }
-
-    [MinLength(3, ErrorMessage = "O tipo de usuário deve ter no mínimo {1} caracteres")]
-    public string UserType { get; set; }
 }
