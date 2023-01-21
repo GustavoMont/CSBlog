@@ -87,4 +87,53 @@ public class PostController : ControllerBase
             return BadRequest(new { message = err.Message });
         }
     }
+
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "ADMIN, WRITER")]
+    public async Task<ActionResult<PostRes>> UpdateAsync(
+        [FromRoute] int id,
+        [FromBody] CreatePost changes
+    )
+    {
+        try
+        {
+            var postUpdated = await _service.UpdateAsync(id, changes);
+            return Ok(postUpdated);
+        }
+        catch (NotFoundException err)
+        {
+            return NotFound(new { message = err.Message });
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "ADMIN, WRITER")]
+    public async Task<ActionResult> DeleteAsync([FromRoute] int id)
+    {
+        try
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+        catch (NotFoundException err)
+        {
+            return NotFound(new { message = err.Message });
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
 }

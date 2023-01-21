@@ -39,4 +39,9 @@ public class Post
         CreatedAt = DateTime.Now.Date;
         UpdatedAt = DateTime.Now.Date;
     }
+
+    public void Update()
+    {
+        UpdatedAt = DateTime.Now.Date;
+    }
 }

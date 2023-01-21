@@ -48,6 +48,23 @@ public class PostService
         return role is null || role == UserType.READER.ToString();
     }
 
+    private async Task<Post> GetByIdAsync(int id, bool tracking = true)
+    {
+        var post = await _repository.GetOneAsync(id, tracking);
+        if (post is null)
+        {
+            throw new NotFoundException("Post não encontrado");
+        }
+        else if (post.Status == PostStatus.DRAFT && !IsAdmin())
+        {
+            if (IsReader() || post.AuthorId != GetUserId())
+            {
+                throw new ForbiddenException();
+            }
+        }
+        return post;
+    }
+
     public async Task<PostRes> CreateAsync(CreatePost body)
     {
         var hasStatus = body.Status is not null;
@@ -80,18 +97,24 @@ public class PostService
 
     public async Task<PostRes> GetOneAsync(int id)
     {
-        var post = await _repository.GetOneAsync(id);
-        if (post is null)
-        {
-            throw new NotFoundException("Post não encontrado");
-        }
-        else if (post.Status == PostStatus.DRAFT && !IsAdmin())
-        {
-            if (IsReader() || post.AuthorId != GetUserId())
-            {
-                throw new ForbiddenException();
-            }
-        }
+        var post = await GetByIdAsync(id, false);
+
         return post.Adapt<PostRes>();
+    }
+
+    public async Task<PostRes> UpdateAsync(int id, CreatePost changes)
+    {
+        var post = await GetByIdAsync(id);
+        post.Update();
+        var updatedPost = changes.Adapt(post);
+        await _repository.UpdateAsync();
+        return updatedPost.Adapt<PostRes>();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var post = await GetByIdAsync(id);
+        await _repository.DeleteAsync(post);
+        return;
     }
 }

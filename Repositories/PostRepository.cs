@@ -51,12 +51,25 @@ public class PostRepository
         return posts;
     }
 
-    public async Task<Post> GetOneAsync(int id)
+    public async Task<Post> GetOneAsync(int id, bool tracking)
     {
-        var post = await _context.Posts
-            .AsNoTracking()
-            .Include(p => p.Author)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var post = tracking
+            ? await _context.Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == id)
+            : await _context.Posts
+                .AsNoTracking()
+                .Include(p => p.Author)
+                .FirstOrDefaultAsync(p => p.Id == id);
         return post;
+    }
+
+    public async Task UpdateAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Post post)
+    {
+        _context.Remove(post);
+        await _context.SaveChangesAsync();
     }
 }
