@@ -63,6 +63,10 @@ public class PostController : ControllerBase
         {
             return NotFound(new { message = err.Message });
         }
+        catch (ForbiddenException)
+        {
+            return Forbid();
+        }
         catch (Exception err)
         {
             return BadRequest(new { message = err.Message });

@@ -25,7 +25,7 @@ public class PostService
     private int GetUserId()
     {
         var user = _httpContext.HttpContext.User;
-        var id = Convert.ToInt32(user.FindFirst("id").Value);
+        var id = Convert.ToInt32(user.FindFirst("id")?.Value);
         return id;
     }
 
@@ -40,6 +40,12 @@ public class PostService
     {
         var role = GetUserRole();
         return role == UserType.ADMIN.ToString();
+    }
+
+    private bool IsReader()
+    {
+        var role = GetUserRole();
+        return role is null || role == UserType.READER.ToString();
     }
 
     public async Task<PostRes> CreateAsync(CreatePost body)
@@ -78,6 +84,13 @@ public class PostService
         if (post is null)
         {
             throw new NotFoundException("Post não encontrado");
+        }
+        else if (post.Status == PostStatus.DRAFT && !IsAdmin())
+        {
+            if (IsReader() || post.AuthorId != GetUserId())
+            {
+                throw new ForbiddenException();
+            }
         }
         return post.Adapt<PostRes>();
     }
