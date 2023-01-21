@@ -21,9 +21,33 @@ public class PostRepository
         return newPost;
     }
 
-    public async Task<List<Post>> ListAsync()
+    public async Task<List<Post>> ListDraftAsync()
     {
-        var posts = await _context.Posts.AsNoTracking().Include(p => p.Author).ToListAsync();
+        var posts = await _context.Posts
+            .AsNoTracking()
+            .Where(p => p.Status == PostStatus.DRAFT)
+            .Include(p => p.Author)
+            .ToListAsync();
+        return posts;
+    }
+
+    public async Task<List<Post>> ListPublishedAsync()
+    {
+        var posts = await _context.Posts
+            .AsNoTracking()
+            .Where(p => p.Status == PostStatus.PUBLISHED)
+            .Include(p => p.Author)
+            .ToListAsync();
+        return posts;
+    }
+
+    public async Task<List<Post>> ListAsync(int? id)
+    {
+        var posts = await _context.Posts
+            .AsNoTracking()
+            .Where(p => p.Status == PostStatus.DRAFT ? id == null || p.AuthorId == id : true)
+            .Include(p => p.Author)
+            .ToListAsync();
         return posts;
     }
 

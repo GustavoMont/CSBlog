@@ -22,12 +22,27 @@ public class PostController : ControllerBase
     {
         try
         {
-            var posts = await _service.ListAsync();
+            var posts = await _service.ListPublishedAsync();
             return Ok(posts);
         }
         catch (NotFoundException err)
         {
             return NotFound(new { message = err.Message });
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpGet("all")]
+    [Authorize(Roles = "ADMIN, WRITER")]
+    public async Task<ActionResult<List<PostRes>>> ListAllAsync()
+    {
+        try
+        {
+            var posts = await _service.ListAsync();
+            return Ok(posts);
         }
         catch (Exception err)
         {

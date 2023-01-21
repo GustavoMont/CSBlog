@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CSBlog.Dtos.Posts;
 using CSBlog.Exceptions;
 using CSBlog.Models;
@@ -23,9 +24,22 @@ public class PostService
 
     private int GetUserId()
     {
-        var HttpContext = _httpContext.HttpContext;
-        var id = Convert.ToInt32(HttpContext.User.FindFirst("id").Value);
+        var user = _httpContext.HttpContext.User;
+        var id = Convert.ToInt32(user.FindFirst("id").Value);
         return id;
+    }
+
+    private string GetUserRole()
+    {
+        var user = _httpContext.HttpContext.User;
+        var role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+        return role;
+    }
+
+    private bool IsAdmin()
+    {
+        var role = GetUserRole();
+        return role == UserType.ADMIN.ToString();
     }
 
     public async Task<PostRes> CreateAsync(CreatePost body)
@@ -44,7 +58,13 @@ public class PostService
 
     public async Task<List<PostRes>> ListAsync()
     {
-        var posts = await _repository.ListAsync();
+        var posts = await _repository.ListAsync(IsAdmin() ? null : GetUserId());
+        return posts.Adapt<List<PostRes>>();
+    }
+
+    public async Task<List<PostRes>> ListPublishedAsync()
+    {
+        var posts = await _repository.ListPublishedAsync();
         if (posts.Count <= 0)
         {
             throw new NotFoundException("Nenhum post foi feito");
