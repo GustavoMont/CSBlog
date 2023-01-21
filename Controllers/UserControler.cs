@@ -36,8 +36,8 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpGet]
-    [Route("{id:int}")]
+    [HttpGet("{id:int}")]
+    [ActionName(nameof(GetOneAsync))]
     public async Task<ActionResult<UserResponse>> GetOneAsync([FromRoute] int id)
     {
         try
@@ -55,8 +55,7 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [Route("team")]
+    [HttpPost("team")]
     [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<UserResponse>> CreateTeamUserAsync(
         [FromBody] CreateTeamUser body
@@ -64,8 +63,8 @@ public class UserController : ControllerBase
     {
         try
         {
-            var response = await _service.CreateTeamUserAsync(body);
-            return StatusCode(201, response);
+            var newUser = await _service.CreateTeamUserAsync(body);
+            return CreatedAtAction(nameof(GetOneAsync), new { id = newUser.Id }, newUser);
         }
         catch (System.Exception err)
         {
@@ -87,8 +86,7 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpPost]
-    [Route("login")]
+    [HttpPost("login")]
     public async Task<ActionResult<AuthToken>> LoginAsync([FromBody] LoginReq credential)
     {
         try

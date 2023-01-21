@@ -35,14 +35,14 @@ public class PostController : ControllerBase
         }
     }
 
-    [HttpGet]
-    [Route("{id:int}")]
+    [HttpGet("{id:int}")]
+    [ActionName(nameof(GetOneAsync))]
     public async Task<ActionResult<PostRes>> GetOneAsync([FromRoute] int id)
     {
         try
         {
             var post = await _service.GetOneAsync(id);
-            return CreatedAtAction(nameof(GetOneAsync), new { id = post.Id }, post);
+            return post;
         }
         catch (NotFoundException err)
         {
@@ -61,7 +61,7 @@ public class PostController : ControllerBase
         try
         {
             var newPost = await _service.CreateAsync(body);
-            return StatusCode(201, newPost);
+            return CreatedAtAction(nameof(GetOneAsync), new { id = newPost.Id }, newPost);
         }
         catch (Exception err)
         {

@@ -10,10 +10,22 @@ namespace CSBlog.Services;
 public class PostService
 {
     private readonly PostRepository _repository;
+    private readonly IHttpContextAccessor _httpContext;
 
-    public PostService([FromServices] PostRepository repository)
+    public PostService(
+        [FromServices] PostRepository repository,
+        [FromServices] IHttpContextAccessor httpContext
+    )
     {
         _repository = repository;
+        _httpContext = httpContext;
+    }
+
+    private int GetUserId()
+    {
+        var HttpContext = _httpContext.HttpContext;
+        var id = Convert.ToInt32(HttpContext.User.FindFirst("id").Value);
+        return id;
     }
 
     public async Task<PostRes> CreateAsync(CreatePost body)
@@ -24,6 +36,7 @@ public class PostService
             throw new BadHttpRequestException("Status inválido");
         }
         var newPost = body.Adapt<Post>();
+        newPost.AuthorId = GetUserId();
         newPost.Create();
         var post = await _repository.CreateAsync(newPost);
         return post.Adapt<PostRes>();

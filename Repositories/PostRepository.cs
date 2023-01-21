@@ -23,13 +23,16 @@ public class PostRepository
 
     public async Task<List<Post>> ListAsync()
     {
-        var posts = await _context.Posts.AsNoTracking().ToListAsync();
+        var posts = await _context.Posts.AsNoTracking().Include(p => p.Author).ToListAsync();
         return posts;
     }
 
     public async Task<Post> GetOneAsync(int id)
     {
-        var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id);
+        var post = await _context.Posts
+            .AsNoTracking()
+            .Include(p => p.Author)
+            .FirstOrDefaultAsync(p => p.Id == id);
         return post;
     }
 }

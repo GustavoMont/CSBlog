@@ -24,6 +24,8 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PostRepository>();
 builder.Services.AddScoped<PostService>();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
