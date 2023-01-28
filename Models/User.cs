@@ -21,9 +21,15 @@ public class User
     [Required]
     public string Email { get; set; }
 
-    [Column(TypeName = "varchar(255)")]
     [Required]
-    public string Password { get; set; }
+    [Column(TypeName = "varchar(255)")]
+    private string _password;
+    public string Password
+    {
+        get { return _password; }
+        set { _password = BCrypt.Net.BCrypt.HashPassword(value); }
+    }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

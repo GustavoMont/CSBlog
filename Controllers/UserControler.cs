@@ -99,4 +99,18 @@ public class UserController : ControllerBase
             return BadRequest(new { message = err.Message });
         }
     }
+
+    [HttpPost("reset-password")]
+    public async Task<ActionResult> ResetPasswordAsync([FromBody] SendEmailResetReq body)
+    {
+        try
+        {
+            await _service.SendResetPasswordEmailAsync(body.Email);
+            return Ok(new { message = "E-mail de recuperação enviado" });
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
 }

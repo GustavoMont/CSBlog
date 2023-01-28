@@ -26,5 +26,17 @@ public class Context : DbContext
                 ps => ps.ToString(),
                 ps => (PostStatus)Enum.Parse(typeof(PostStatus), ps)
             );
+        modelBuilder
+            .Entity<User>()
+            .HasData(
+                new User
+                {
+                    Id = 1,
+                    Name = "Admin",
+                    LastName = "Admin",
+                    Email = "admin@admin.com",
+                    Password = "123456",
+                }
+            );
     }
 }

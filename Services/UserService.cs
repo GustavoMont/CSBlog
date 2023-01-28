@@ -2,8 +2,10 @@ using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
 using CSBlog.Models;
 using CSBlog.Repositories;
+using MailKit.Net.Smtp;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using MimeKit;
 
 namespace CSBlog.Services;
 
@@ -81,7 +83,6 @@ public class UserService
         await UserAlreadyExists(body.Email);
         ComparePasswords(body.Password, body.ConfirmPassword);
         var user = body.Adapt<User>();
-        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
         var newUser = await _repository.CreateAsync(user);
         return GenerateToken(newUser);
     }
@@ -117,5 +118,46 @@ public class UserService
             throw new HttpRequestException("Este usuário não existe");
         }
         return user.Adapt<UserResponse>();
+    }
+
+    public async Task SendResetPasswordEmailAsync(string email)
+    {
+        var user = await GetByEmailAsync(email);
+        var fullName = $"{user.Name} {user.LastName}";
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("CS Blog", "dedric.brown10@ethereal.email"));
+        message.To.Add(new MailboxAddress(fullName, email));
+        message.Subject = "Reset Password";
+        message.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+        {
+            Text =
+                $"<h1>MUDE SUA SENHAAAA</h1>http://{Environment.GetEnvironmentVariable("FRONT_DOMAIN")}/reset_password/{_tokenService.GenerateResetPasswordToken(user.Id)}"
+        };
+        using (var client = new SmtpClient())
+        {
+            client.Connect(
+                "smtp.ethereal.email",
+                587,
+                MailKit.Security.SecureSocketOptions.StartTls
+            );
+            client.Authenticate("dedric.brown10@ethereal.email", "3KVH3n93QCbbwxdBnp");
+            client.Send(message);
+            client.Disconnect(true);
+        }
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordReq body)
+    {
+        if (!_tokenService.IsTokenValid(body.Token))
+        {
+            throw new BadHttpRequestException("Token inválido");
+        }
+        if (body.Password != body.ConfirmPassword)
+        {
+            throw new BadHttpRequestException("Senhas não coincidem");
+        }
+        int userId = _tokenService.GetUserId(body.Token);
+        var user = await _repository.GetById(userId);
+        user.Password = body.Password;
     }
 }
