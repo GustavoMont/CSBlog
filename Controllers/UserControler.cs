@@ -1,5 +1,6 @@
 using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
+using CSBlog.Exceptions;
 using CSBlog.Models;
 using CSBlog.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -100,13 +101,50 @@ public class UserController : ControllerBase
         }
     }
 
-    [HttpPost("reset-password")]
-    public async Task<ActionResult> ResetPasswordAsync([FromBody] SendEmailResetReq body)
+    [HttpPut("{id:int}")]
+    [Authorize]
+    public async Task<ActionResult> UpdateAsync([FromRoute] int id, [FromBody] UpdateUserReq body)
+    {
+        try
+        {
+            await _service.UpdateAsync(id, body);
+            return Ok(new { message = "Usuário atualizado" });
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
+        }
+        catch (NotFoundException err)
+        {
+            return NotFound(new { message = err.Message });
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult> SendResetPasswordEmailAsync([FromBody] SendEmailResetReq body)
     {
         try
         {
             await _service.SendResetPasswordEmailAsync(body.Email);
             return Ok(new { message = "E-mail de recuperação enviado" });
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordReq body)
+    {
+        try
+        {
+            await _service.ResetPasswordAsync(body);
+            return Ok(new { message = "Senha redefinda com sucesso" });
         }
         catch (Exception err)
         {

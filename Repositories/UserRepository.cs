@@ -34,9 +34,15 @@ public class UserRepository
         return user;
     }
 
-    public async Task<User> GetById(int id)
+    public async Task<User> GetById(int id, bool tracking = true)
     {
-        var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+        var action = tracking ? _context.Users : _context.Users.AsNoTracking();
+        var user = await action.FirstOrDefaultAsync(u => u.Id == id);
         return user;
+    }
+
+    public async Task UpdateAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

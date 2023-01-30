@@ -12,7 +12,7 @@ DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var secretJwtKey = System.Environment.GetEnvironmentVariable("jwtkey");
+var secretJwtKey = System.Environment.GetEnvironmentVariable("JWT_KEY");
 
 var key = Encoding.ASCII.GetBytes(secretJwtKey);
 
@@ -23,6 +23,7 @@ builder.Services.AddScoped<UserController>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PostRepository>();
 builder.Services.AddScoped<PostService>();
+builder.Services.AddScoped<EmailService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -30,6 +31,7 @@ builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
 
 builder.Services

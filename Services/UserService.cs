@@ -1,5 +1,7 @@
+using CSBlog.Dtos.Email;
 using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
+using CSBlog.Exceptions;
 using CSBlog.Models;
 using CSBlog.Repositories;
 using MailKit.Net.Smtp;
@@ -13,14 +15,27 @@ public class UserService
 {
     private readonly UserRepository _repository;
     private readonly TokenService _tokenService;
+    private readonly EmailService _emailService;
+    private readonly IHttpContextAccessor _httpContext;
 
     public UserService(
         [FromServices] UserRepository userRepository,
-        [FromServices] TokenService tokenService
+        [FromServices] TokenService tokenService,
+        [FromServices] EmailService emailService,
+        [FromServices] IHttpContextAccessor httpContextAccessor
     )
     {
         _repository = userRepository;
         _tokenService = tokenService;
+        _emailService = emailService;
+        _httpContext = httpContextAccessor;
+    }
+
+    private int GetUserId()
+    {
+        var user = _httpContext.HttpContext.User;
+        var id = Convert.ToInt32(user.FindFirst("id")?.Value);
+        return id;
     }
 
     private AuthToken GenerateToken(User user)
@@ -104,15 +119,15 @@ public class UserService
         return user;
     }
 
-    private async Task<User> GetByIdAsync(int id)
+    private async Task<User> GetByIdAsync(int id, bool tracking = true)
     {
-        var user = await _repository.GetById(id);
+        var user = await _repository.GetById(id, tracking);
         return user;
     }
 
     public async Task<UserResponse> GetOneAsync(int id)
     {
-        var user = await GetByIdAsync(id);
+        var user = await GetByIdAsync(id, false);
         if (user is null)
         {
             throw new HttpRequestException("Este usuário não existe");
@@ -123,27 +138,21 @@ public class UserService
     public async Task SendResetPasswordEmailAsync(string email)
     {
         var user = await GetByEmailAsync(email);
-        var fullName = $"{user.Name} {user.LastName}";
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("CS Blog", "dedric.brown10@ethereal.email"));
-        message.To.Add(new MailboxAddress(fullName, email));
-        message.Subject = "Reset Password";
-        message.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+        if (user is null)
         {
-            Text =
-                $"<h1>MUDE SUA SENHAAAA</h1>http://{Environment.GetEnvironmentVariable("FRONT_DOMAIN")}/reset_password/{_tokenService.GenerateResetPasswordToken(user.Id)}"
-        };
-        using (var client = new SmtpClient())
-        {
-            client.Connect(
-                "smtp.ethereal.email",
-                587,
-                MailKit.Security.SecureSocketOptions.StartTls
-            );
-            client.Authenticate("dedric.brown10@ethereal.email", "3KVH3n93QCbbwxdBnp");
-            client.Send(message);
-            client.Disconnect(true);
+            throw new NotFoundException("Usuário não cadatrado");
         }
+        var fullName = $"{user.Name} {user.LastName}";
+        _emailService.SendEmail(
+            new SendEmailReq
+            {
+                Content =
+                    $"<h1>Mude sua senha</h1>\nPara mudar sua senha acesse {Environment.GetEnvironmentVariable("FRONT_DOMAIN")}/reset-password/{_tokenService.GenerateResetPasswordToken(user.Id)}",
+                Email = user.Email,
+                FullName = $"{user.Name} {user.LastName}",
+                Subject = "Redefinir senha"
+            }
+        );
     }
 
     public async Task ResetPasswordAsync(ResetPasswordReq body)
@@ -152,12 +161,32 @@ public class UserService
         {
             throw new BadHttpRequestException("Token inválido");
         }
-        if (body.Password != body.ConfirmPassword)
-        {
-            throw new BadHttpRequestException("Senhas não coincidem");
-        }
+        ComparePasswords(body.Password, body.ConfirmPassword);
         int userId = _tokenService.GetUserId(body.Token);
+        System.Console.WriteLine("userId");
         var user = await _repository.GetById(userId);
         user.Password = body.Password;
+        await _repository.UpdateAsync();
+    }
+
+    public async Task UpdateAsync(int id, UpdateUserReq changes)
+    {
+        var user = await GetByIdAsync(id);
+        if (user is null)
+        {
+            throw new NotFoundException("Usuário não encontrado");
+        }
+        if (user.Id != GetUserId())
+        {
+            throw new ForbiddenException();
+        }
+        if (user.Email != changes.Email)
+        {
+            await UserAlreadyExists(changes.Email);
+        }
+        user.Update();
+        var updatedUser = changes.Adapt(user);
+        System.Console.WriteLine(updatedUser.Name);
+        await _repository.UpdateAsync();
     }
 }

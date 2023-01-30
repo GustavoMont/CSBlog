@@ -8,7 +8,8 @@ namespace CSBlog.Services;
 
 public class TokenService
 {
-    private string jwtkey = System.Environment.GetEnvironmentVariable("jwtkey");
+    private string jwtkey = System.Environment.GetEnvironmentVariable("JWT_KEY");
+    private string audience = System.Environment.GetEnvironmentVariable("AUDIENCE");
 
     public string GenerateToken(User user)
     {
@@ -23,6 +24,7 @@ public class TokenService
                     new Claim("id", user.Id.ToString())
                 }
             ),
+            Audience = "jhonsonkkkkkk",
             Expires = DateTime.Now.AddHours(8),
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
@@ -44,7 +46,8 @@ public class TokenService
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256Signature
-            )
+            ),
+            Audience = audience
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
@@ -60,13 +63,16 @@ public class TokenService
                 // Configurações de validação
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtkey)),
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
+                ValidAudiences = new[] { audience },
+                ValidateIssuer = false,
             };
             handler.ValidateToken(jwt, validationParameters, out SecurityToken token);
             return true;
         }
-        catch (System.Exception)
+        catch (System.Exception err)
         {
+            System.Console.WriteLine(err.Message);
             return false;
         }
     }
@@ -75,7 +81,8 @@ public class TokenService
     {
         var handler = new JwtSecurityTokenHandler();
         var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
-        string userId = jsonToken.Claims.First(claim => claim.Type == "sub").Value;
+        System.Console.WriteLine(jsonToken.Claims.ToString());
+        string userId = jsonToken.Claims.First(claim => claim.Type == "id")?.Value;
         return int.Parse(userId);
     }
 }

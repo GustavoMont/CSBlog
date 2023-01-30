@@ -36,6 +36,7 @@ public class Context : DbContext
                     LastName = "Admin",
                     Email = "admin@admin.com",
                     Password = "123456",
+                    UserType = UserType.ADMIN
                 }
             );
     }
