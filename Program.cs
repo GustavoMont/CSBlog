@@ -24,6 +24,8 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PostRepository>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<CommentRepository>();
+builder.Services.AddScoped<CommentService>();
 
 builder.Services.AddHttpContextAccessor();
 

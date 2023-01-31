@@ -3,37 +3,22 @@ using CSBlog.Dtos.Posts;
 using CSBlog.Exceptions;
 using CSBlog.Models;
 using CSBlog.Repositories;
+using CSBlog.Utils;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CSBlog.Services;
 
-public class PostService
+public class PostService : UserInfoHandler
 {
     private readonly PostRepository _repository;
-    private readonly IHttpContextAccessor _httpContext;
 
     public PostService(
         [FromServices] PostRepository repository,
         [FromServices] IHttpContextAccessor httpContext
-    )
+    ) : base(httpContext)
     {
         _repository = repository;
-        _httpContext = httpContext;
-    }
-
-    private int GetUserId()
-    {
-        var user = _httpContext.HttpContext.User;
-        var id = Convert.ToInt32(user.FindFirst("id")?.Value);
-        return id;
-    }
-
-    private string GetUserRole()
-    {
-        var user = _httpContext.HttpContext.User;
-        var role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-        return role;
     }
 
     private bool IsAdmin()

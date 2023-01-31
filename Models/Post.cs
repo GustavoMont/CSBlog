@@ -34,6 +34,8 @@ public class Post
     public int AuthorId { get; set; }
     public User Author { get; set; }
 
+    public List<Comment> Comments { get; set; }
+
     public void Create()
     {
         CreatedAt = DateTime.Now.Date;

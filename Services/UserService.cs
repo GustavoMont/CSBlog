@@ -4,6 +4,7 @@ using CSBlog.Dtos.User;
 using CSBlog.Exceptions;
 using CSBlog.Models;
 using CSBlog.Repositories;
+using CSBlog.Utils;
 using MailKit.Net.Smtp;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -11,31 +12,22 @@ using MimeKit;
 
 namespace CSBlog.Services;
 
-public class UserService
+public class UserService : UserInfoHandler
 {
     private readonly UserRepository _repository;
     private readonly TokenService _tokenService;
     private readonly EmailService _emailService;
-    private readonly IHttpContextAccessor _httpContext;
 
     public UserService(
         [FromServices] UserRepository userRepository,
         [FromServices] TokenService tokenService,
         [FromServices] EmailService emailService,
         [FromServices] IHttpContextAccessor httpContextAccessor
-    )
+    ) : base(httpContextAccessor)
     {
         _repository = userRepository;
         _tokenService = tokenService;
         _emailService = emailService;
-        _httpContext = httpContextAccessor;
-    }
-
-    private int GetUserId()
-    {
-        var user = _httpContext.HttpContext.User;
-        var id = Convert.ToInt32(user.FindFirst("id")?.Value);
-        return id;
     }
 
     private AuthToken GenerateToken(User user)
