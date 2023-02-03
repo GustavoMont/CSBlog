@@ -80,7 +80,6 @@ public class UserService : UserInfoHandler
             throw new BadHttpRequestException("Tipo de usuário não existente");
         }
         var user = body.Adapt<User>();
-        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
         var newUser = await _repository.CreateAsync(user);
         return newUser.Adapt<UserResponse>();
     }

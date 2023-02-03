@@ -36,19 +36,52 @@ public class CommentController : ControllerBase
         }
     }
 
-    [HttpPost("post/{id:int")]
+    [HttpGet("post/{postId:int}")]
+    public async Task<ActionResult<List<CommentRes>>> GetPostCommentsAsync([FromRoute] int postId)
+    {
+        try
+        {
+            var comments = await _service.GetPostCommentsAsync(postId);
+            return Ok(comments);
+        }
+        catch (Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpPost("post/{postId:int}")]
     [Authorize]
     public async Task<ActionResult<CommentRes>> CreateAsync(
-        [FromRoute] int postId,
+        [FromRoute] int id,
         [FromBody] CreateCommentReq body
     )
     {
         try
         {
-            var newComment = await _service.CreateAsync(postId, body);
+            var newComment = await _service.CreateAsync(id, body);
             return CreatedAtAction(nameof(GetOneAsync), new { id = newComment.Id }, newComment);
         }
         catch (System.Exception err)
+        {
+            return BadRequest(new { message = err.Message });
+        }
+    }
+
+    [HttpDelete("{id:int}")]
+    [Authorize]
+    public async Task<ActionResult> DeleteAsync([FromRoute] int id)
+    {
+        try
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
+        }
+        catch (Exception err)
         {
             return BadRequest(new { message = err.Message });
         }

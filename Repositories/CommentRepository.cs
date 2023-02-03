@@ -21,9 +21,28 @@ public class CommentRepository
         return newComment;
     }
 
-    public async Task<Comment> GetOneAsync(int id)
+    public async Task<List<Comment>> GetPostCommentsAsync(int postId)
     {
-        var comment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == id);
+        var comments = await _context.Comments
+            .AsNoTracking()
+            .Include(c => c.User)
+            .Where(c => c.PostId == postId)
+            .ToListAsync();
+        return comments;
+    }
+
+    public async Task<Comment> GetOneAsync(int id, bool tracking = true)
+    {
+        var action = tracking
+            ? _context.Comments.Include(c => c.User)
+            : _context.Comments.Include(c => c.User).AsNoTracking();
+        var comment = await action.FirstOrDefaultAsync(c => c.Id == id);
         return comment;
+    }
+
+    public async Task DeleteAsync(Comment comment)
+    {
+        _context.Comments.Remove(comment);
+        await _context.SaveChangesAsync();
     }
 }

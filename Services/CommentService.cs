@@ -29,13 +29,35 @@ public class CommentService : UserInfoHandler
         return createdComment.Adapt<CommentRes>();
     }
 
-    public async Task<CommentRes> GetOneAsync(int id)
+    public async Task<List<CommentRes>> GetPostCommentsAsync(int postId)
     {
-        var comment = await _repository.GetOneAsync(id);
+        var comments = await _repository.GetPostCommentsAsync(postId);
+        return comments.Adapt<List<CommentRes>>();
+    }
+
+    public async Task<Comment> GetById(int id, bool tracking = true)
+    {
+        var comment = await _repository.GetOneAsync(id, tracking);
         if (comment is null)
         {
             throw new NotFoundException("Comentário não encontrado");
         }
+        return comment;
+    }
+
+    public async Task<CommentRes> GetOneAsync(int id)
+    {
+        var comment = await GetById(id, false);
         return comment.Adapt<CommentRes>();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var comment = await GetById(id);
+        if (comment.UserId != GetUserId())
+        {
+            throw new ForbiddenException();
+        }
+        await _repository.DeleteAsync(comment);
     }
 }
