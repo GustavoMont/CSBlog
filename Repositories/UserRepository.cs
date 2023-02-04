@@ -30,7 +30,12 @@ public class UserRepository
 
     public async Task<List<User>> ListAsync(int skip = 0, int take = 25)
     {
-        var users = await _context.Users.AsNoTracking().Skip(skip).Take(take).ToListAsync();
+        var users = await _context.Users
+            .AsNoTracking()
+            .OrderBy(u => u.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
         return users;
     }
 

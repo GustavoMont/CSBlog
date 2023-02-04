@@ -1,3 +1,4 @@
+using CSBlog.Dtos;
 using CSBlog.Dtos.Email;
 using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
@@ -93,15 +94,19 @@ public class UserService : ServiceUtils
         return GenerateToken(newUser);
     }
 
-    public async Task<List<UserResponse>> ListAsync(int skip = 0, int take = 25)
+    public async Task<ListResponse<UserResponse>> ListAsync(int page = 1, int take = 25)
     {
-        var users = await _repository.ListAsync();
-        if (users.Count <= 0)
+        HandlePagination(take);
+        var count = await _repository.GetCountAsync();
+        if (count <= 0)
         {
             throw new HttpRequestException("Nenhum usuário cadastrado");
         }
-        var res = users.Adapt<List<UserResponse>>();
-        return res;
+        var skip = GenerateSkip(page, take);
+        var users = await _repository.ListAsync(skip, take);
+        ListResponse<UserResponse> response =
+            new(page, count, take) { Results = users.Adapt<List<UserResponse>>() };
+        return response;
     }
 
     private async Task<User> GetByEmailAsync(string email)
@@ -154,7 +159,6 @@ public class UserService : ServiceUtils
         }
         ComparePasswords(body.Password, body.ConfirmPassword);
         int userId = _tokenService.GetUserId(body.Token);
-        System.Console.WriteLine("userId");
         var user = await _repository.GetById(userId);
         user.Password = body.Password;
         await _repository.UpdateAsync();
@@ -177,7 +181,6 @@ public class UserService : ServiceUtils
         }
         user.Update();
         var updatedUser = changes.Adapt(user);
-        System.Console.WriteLine(updatedUser.Name);
         await _repository.UpdateAsync();
     }
 }

@@ -1,3 +1,4 @@
+using CSBlog.Dtos;
 using CSBlog.Dtos.Token;
 using CSBlog.Dtos.User;
 using CSBlog.Exceptions;
@@ -20,12 +21,19 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<UserResponse>>> ListAsync()
+    public async Task<ActionResult<ListResponse<UserResponse>>> ListAsync(
+        [FromQuery] int page = 1,
+        [FromQuery] int take = 25
+    )
     {
         try
         {
-            var response = await _service.ListAsync();
+            var response = await _service.ListAsync(page, take);
             return Ok(response);
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
         }
         catch (HttpRequestException err)
         {

@@ -70,9 +70,8 @@ public class TokenService
             handler.ValidateToken(jwt, validationParameters, out SecurityToken token);
             return true;
         }
-        catch (System.Exception err)
+        catch (System.Exception)
         {
-            System.Console.WriteLine(err.Message);
             return false;
         }
     }
@@ -81,7 +80,6 @@ public class TokenService
     {
         var handler = new JwtSecurityTokenHandler();
         var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
-        System.Console.WriteLine(jsonToken.Claims.ToString());
         string userId = jsonToken.Claims.First(claim => claim.Type == "id")?.Value;
         return int.Parse(userId);
     }
