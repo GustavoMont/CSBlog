@@ -1,12 +1,14 @@
 using System.Security.Claims;
+using CSBlog.Dtos;
+using CSBlog.Exceptions;
 
 namespace CSBlog.Utils;
 
-public class UserInfoHandler
+public class ServiceUtils
 {
     private readonly IHttpContextAccessor _httpContext;
 
-    public UserInfoHandler(IHttpContextAccessor httpContext)
+    public ServiceUtils(IHttpContextAccessor httpContext)
     {
         _httpContext = httpContext;
     }
@@ -23,5 +25,13 @@ public class UserInfoHandler
         var user = _httpContext.HttpContext.User;
         var role = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
         return role;
+    }
+
+    protected void HandlePagination(int take)
+    {
+        if (take > 500)
+        {
+            throw new ForbiddenException();
+        }
     }
 }

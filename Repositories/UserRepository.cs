@@ -14,6 +14,12 @@ public class UserRepository
         _context = context;
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        var count = await _context.Users.CountAsync();
+        return count;
+    }
+
     public async Task<User> CreateAsync(User newUser)
     {
         newUser.Create();
@@ -22,9 +28,9 @@ public class UserRepository
         return newUser;
     }
 
-    public async Task<List<User>> ListAsync()
+    public async Task<List<User>> ListAsync(int skip = 0, int take = 25)
     {
-        var users = await _context.Users.AsNoTracking().ToListAsync();
+        var users = await _context.Users.AsNoTracking().Skip(skip).Take(take).ToListAsync();
         return users;
     }
 

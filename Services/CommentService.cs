@@ -1,3 +1,4 @@
+using CSBlog.Dtos;
 using CSBlog.Dtos.Comments;
 using CSBlog.Exceptions;
 using CSBlog.Models;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CSBlog.Services;
 
-public class CommentService : UserInfoHandler
+public class CommentService : ServiceUtils
 {
     private readonly CommentRepository _repository;
 
@@ -29,10 +30,20 @@ public class CommentService : UserInfoHandler
         return createdComment.Adapt<CommentRes>();
     }
 
-    public async Task<List<CommentRes>> GetPostCommentsAsync(int postId)
+    public async Task<ListResponse<CommentRes>> GetPostCommentsAsync(
+        int postId,
+        int page = 1,
+        int take = 25
+    )
     {
-        var comments = await _repository.GetPostCommentsAsync(postId);
-        return comments.Adapt<List<CommentRes>>();
+        HandlePagination(take);
+        int skip = (page - 1) * take;
+        var comments = await _repository.GetPostCommentsAsync(postId, skip, take);
+        int count = await _repository.GetCountAsync();
+        decimal pageCount = count / page;
+        ListResponse<CommentRes> response =
+            new(page, count, take) { Results = comments.Adapt<List<CommentRes>>() };
+        return response;
     }
 
     public async Task<Comment> GetById(int id, bool tracking = true)

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CSBlog.Services;
 
-public class PostService : UserInfoHandler
+public class PostService : ServiceUtils
 {
     private readonly PostRepository _repository;
 

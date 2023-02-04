@@ -1,3 +1,4 @@
+using CSBlog.Dtos;
 using CSBlog.Dtos.Comments;
 using CSBlog.Exceptions;
 using CSBlog.Services;
@@ -37,12 +38,20 @@ public class CommentController : ControllerBase
     }
 
     [HttpGet("post/{postId:int}")]
-    public async Task<ActionResult<List<CommentRes>>> GetPostCommentsAsync([FromRoute] int postId)
+    public async Task<ActionResult<ListResponse<CommentRes>>> GetPostCommentsAsync(
+        [FromRoute] int postId,
+        [FromQuery] int page = 1,
+        [FromQuery] int take = 25
+    )
     {
         try
         {
-            var comments = await _service.GetPostCommentsAsync(postId);
+            var comments = await _service.GetPostCommentsAsync(postId, page, take);
             return Ok(comments);
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
         }
         catch (Exception err)
         {
@@ -53,13 +62,13 @@ public class CommentController : ControllerBase
     [HttpPost("post/{postId:int}")]
     [Authorize]
     public async Task<ActionResult<CommentRes>> CreateAsync(
-        [FromRoute] int id,
+        [FromRoute] int postId,
         [FromBody] CreateCommentReq body
     )
     {
         try
         {
-            var newComment = await _service.CreateAsync(id, body);
+            var newComment = await _service.CreateAsync(postId, body);
             return CreatedAtAction(nameof(GetOneAsync), new { id = newComment.Id }, newComment);
         }
         catch (System.Exception err)

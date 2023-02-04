@@ -41,11 +41,16 @@ public class PostRepository
         return posts;
     }
 
-    public async Task<List<Post>> ListAsync(int? id)
+    public async Task<List<Post>> ListAsync(int? userId, int skip = 0, int take = 25)
     {
         var posts = await _context.Posts
             .AsNoTracking()
-            .Where(p => p.Status == PostStatus.DRAFT ? id == null || p.AuthorId == id : true)
+            .Skip(skip)
+            .Take(take)
+            .OrderByDescending(p => p.UpdatedAt)
+            .Where(
+                p => p.Status == PostStatus.DRAFT ? userId == null || p.AuthorId == userId : true
+            )
             .Include(p => p.Author)
             .ToListAsync();
         return posts;

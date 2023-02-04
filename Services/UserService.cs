@@ -12,7 +12,7 @@ using MimeKit;
 
 namespace CSBlog.Services;
 
-public class UserService : UserInfoHandler
+public class UserService : ServiceUtils
 {
     private readonly UserRepository _repository;
     private readonly TokenService _tokenService;
@@ -93,7 +93,7 @@ public class UserService : UserInfoHandler
         return GenerateToken(newUser);
     }
 
-    public async Task<List<UserResponse>> ListAsync()
+    public async Task<List<UserResponse>> ListAsync(int skip = 0, int take = 25)
     {
         var users = await _repository.ListAsync();
         if (users.Count <= 0)

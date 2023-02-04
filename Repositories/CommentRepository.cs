@@ -14,6 +14,12 @@ public class CommentRepository
         _context = context;
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        var count = await _context.Comments.CountAsync();
+        return count;
+    }
+
     public async Task<Comment> CreateAsync(Comment newComment)
     {
         await _context.Comments.AddAsync(newComment);
@@ -21,10 +27,12 @@ public class CommentRepository
         return newComment;
     }
 
-    public async Task<List<Comment>> GetPostCommentsAsync(int postId)
+    public async Task<List<Comment>> GetPostCommentsAsync(int postId, int skip = 0, int take = 10)
     {
         var comments = await _context.Comments
             .AsNoTracking()
+            .Skip(skip)
+            .Take(take)
             .Include(c => c.User)
             .Where(c => c.PostId == postId)
             .ToListAsync();
