@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using CSBlog.Dtos;
 using CSBlog.Dtos.Posts;
 using CSBlog.Exceptions;
 using CSBlog.Models;
@@ -64,20 +65,31 @@ public class PostService : ServiceUtils
         return post.Adapt<PostRes>();
     }
 
-    public async Task<List<PostRes>> ListAsync()
+    public async Task<ListResponse<PostRes>> ListAsync(int page = 1, int take = 25)
     {
-        var posts = await _repository.ListAsync(IsAdmin() ? null : GetUserId());
-        return posts.Adapt<List<PostRes>>();
+        HandlePagination(take);
+        int skip = GenerateSkip(page, take);
+        int? userId = IsAdmin() ? null : GetUserId();
+        var posts = await _repository.ListAsync(userId, skip, take);
+        var count = await _repository.GetCountAsync();
+        ListResponse<PostRes> response =
+            new(page, count, take) { Results = posts.Adapt<List<PostRes>>() };
+        return response;
     }
 
-    public async Task<List<PostRes>> ListPublishedAsync()
+    public async Task<ListResponse<PostRes>> ListPublishedAsync(int page = 1, int take = 25)
     {
-        var posts = await _repository.ListPublishedAsync();
-        if (posts.Count <= 0)
+        HandlePagination(take);
+        int skip = GenerateSkip(page, take);
+        var posts = await _repository.ListPublishedAsync(skip, take);
+        var count = await _repository.GetCountByStatusAsync(PostStatus.PUBLISHED);
+        if (count <= 0)
         {
             throw new NotFoundException("Nenhum post foi feito");
         }
-        return posts.Adapt<List<PostRes>>();
+        ListResponse<PostRes> response =
+            new(page, count, take) { Results = posts.Adapt<List<PostRes>>() };
+        return response;
     }
 
     public async Task<PostRes> GetOneAsync(int id)

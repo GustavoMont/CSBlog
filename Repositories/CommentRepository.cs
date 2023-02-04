@@ -33,6 +33,7 @@ public class CommentRepository
             .AsNoTracking()
             .Skip(skip)
             .Take(take)
+            .OrderByDescending(c => c.Id)
             .Include(c => c.User)
             .Where(c => c.PostId == postId)
             .ToListAsync();

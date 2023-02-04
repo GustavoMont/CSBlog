@@ -1,3 +1,4 @@
+using CSBlog.Dtos;
 using CSBlog.Dtos.Posts;
 using CSBlog.Exceptions;
 using CSBlog.Services;
@@ -18,12 +19,19 @@ public class PostController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<PostRes>>> ListAsync()
+    public async Task<ActionResult<ListResponse<PostRes>>> ListAsync(
+        [FromQuery] int page = 1,
+        [FromQuery] int take = 25
+    )
     {
         try
         {
-            var posts = await _service.ListPublishedAsync();
+            var posts = await _service.ListPublishedAsync(page, take);
             return Ok(posts);
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
         }
         catch (NotFoundException err)
         {
@@ -37,12 +45,19 @@ public class PostController : ControllerBase
 
     [HttpGet("all")]
     [Authorize(Roles = "ADMIN, WRITER")]
-    public async Task<ActionResult<List<PostRes>>> ListAllAsync()
+    public async Task<ActionResult<ListResponse<PostRes>>> ListAllAsync(
+        [FromQuery] int page = 1,
+        [FromQuery] int take = 25
+    )
     {
         try
         {
-            var posts = await _service.ListAsync();
+            var posts = await _service.ListAsync(page, take);
             return Ok(posts);
+        }
+        catch (ForbiddenException)
+        {
+            return Forbid();
         }
         catch (Exception err)
         {

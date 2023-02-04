@@ -14,6 +14,18 @@ public class PostRepository
         _context = context;
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        var count = await _context.Posts.CountAsync();
+        return count;
+    }
+
+    public async Task<int> GetCountByStatusAsync(PostStatus status)
+    {
+        var count = await _context.Posts.Where(p => p.Status == status).CountAsync();
+        return count;
+    }
+
     public async Task<Post> CreateAsync(Post newPost)
     {
         await _context.Posts.AddAsync(newPost);
@@ -21,21 +33,27 @@ public class PostRepository
         return newPost;
     }
 
-    public async Task<List<Post>> ListDraftAsync()
+    public async Task<List<Post>> ListDraftAsync(int skip = 0, int take = 25)
     {
         var posts = await _context.Posts
             .AsNoTracking()
             .Where(p => p.Status == PostStatus.DRAFT)
+            .OrderByDescending(p => p.UpdatedAt)
+            .Skip(skip)
+            .Take(take)
             .Include(p => p.Author)
             .ToListAsync();
         return posts;
     }
 
-    public async Task<List<Post>> ListPublishedAsync()
+    public async Task<List<Post>> ListPublishedAsync(int skip = 0, int take = 25)
     {
         var posts = await _context.Posts
             .AsNoTracking()
             .Where(p => p.Status == PostStatus.PUBLISHED)
+            .OrderByDescending(p => p.UpdatedAt)
+            .Skip(skip)
+            .Take(take)
             .Include(p => p.Author)
             .ToListAsync();
         return posts;
@@ -45,12 +63,12 @@ public class PostRepository
     {
         var posts = await _context.Posts
             .AsNoTracking()
-            .Skip(skip)
-            .Take(take)
-            .OrderByDescending(p => p.UpdatedAt)
             .Where(
                 p => p.Status == PostStatus.DRAFT ? userId == null || p.AuthorId == userId : true
             )
+            .OrderByDescending(p => p.UpdatedAt)
+            .Skip(skip)
+            .Take(take)
             .Include(p => p.Author)
             .ToListAsync();
         return posts;

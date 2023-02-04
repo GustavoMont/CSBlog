@@ -37,7 +37,7 @@ public class CommentService : ServiceUtils
     )
     {
         HandlePagination(take);
-        int skip = (page - 1) * take;
+        int skip = GenerateSkip(page, take);
         var comments = await _repository.GetPostCommentsAsync(postId, skip, take);
         int count = await _repository.GetCountAsync();
         decimal pageCount = count / page;

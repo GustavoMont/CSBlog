@@ -34,4 +34,9 @@ public class ServiceUtils
             throw new ForbiddenException();
         }
     }
+
+    protected int GenerateSkip(int page, int take)
+    {
+        return (page - 1) * take;
+    }
 }
